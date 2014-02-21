@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# MY NAME IS MACROTIS
+# KING OF ALL YOU SEE HERE
+# LOOK ON MY WORKS, YE MIGHTY
+# AND DESPAIR!
 import time
 import json
 import re
@@ -12,7 +16,6 @@ from tkinter import ttk
 from tkinter import font
 
 current_q, current_q_num = None, 0
-atto_secs_left, anto_secs_left = 0, 0
 last_round_num = 0
 
 class Contestant(object):
@@ -123,6 +126,9 @@ admin_window.title("ToQ Admin")
 admin_window.resizable(0, 0) # Yeah, I'm a jerk. I also need to get this done.
 display_window = Toplevel(admin_window)
 display_window.title("Table O' Questions!")
+
+atto_secs_left, anto_secs_left = DoubleVar(), DoubleVar()
+atto_secs_left_label = StringVar()
 
 cat_font = font.Font(family='Comic Sans MS', weight='bold', size=20)
 logo_font = font.Font(family='Comic Sans MS', weight='bold', size=32)
@@ -308,7 +314,7 @@ def paint_question_open(*args):
         ym,
         text=("{:%d.3f} seconds to attempt" % (
             log(game[current_round]['attempt_timeout'], 10)
-        )).format(max(0, atto_secs_left)),
+        )).format(max(0, atto_secs_left.get())),
         anchor=E,
         fill='white',
         font=cat_font
@@ -341,7 +347,7 @@ def paint_question_attempt(*args):
         ym,
         text=("{:%d.3f} seconds to answer" % (
             log(game[current_round]['answer_timeout'], 10)
-        )).format(max(0, anto_secs_left)),
+        )).format(max(0, anto_secs_left.get())),
         anchor=E,
         fill='white',
         font=cat_font
@@ -499,7 +505,7 @@ def see_if_correct(qref, contestant, timeout):
                command=click_no).grid(column=1, row=0)
     start_time = datetime.now()
     time_spent = 0
-    anto_secs_left = timeout - time_spent
+    anto_secs_left.set(timeout - time_spent)
     paint_question_attempt()
     while time_spent < timeout:
         # TODO: Update the game display too!
@@ -507,7 +513,7 @@ def see_if_correct(qref, contestant, timeout):
             break
         time_spent = (datetime.now() - start_time).total_seconds()
         time_spent_width = int(ceil(log(time_spent, 10)))
-        anto_secs_left = timeout - time_spent
+        anto_secs_left.set(timeout - time_spent)
         if (timeout - time_spent) > 0:
             timeout_label.config(
                 text=("{:%s.3f} seconds left" 
@@ -535,12 +541,16 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
     global accepting_answers
     global buzzer_queue
     global atto_secs_left
+    global atto_secs_left_label
     this_round = game[round_num]
     this_q = this_round['categories'][cat_num]['questions'][q_num]
     q_buttons = round_qbuttons[round_num][1]
     im = datetime.now()
     d = (im - start_at).total_seconds()
-    atto_secs_left = timeout - d
+    atto_secs_left.set(timeout - d)
+    atto_secs_left_label.set((
+        "{:%d.3f}" % int(ceil(log(this_round['attempt_timeout'], 10)))
+    ).format(max(0, atto_secs_left.get())))
     paint_question_open()
     if d > timeout:
         for q_button in q_buttons:
@@ -593,6 +603,7 @@ def make_open_callback(round_num, cat_num, q_num):
     this_round = game[round_num]
     this_q = this_round['categories'][cat_num]['questions'][q_num]
     def open_cb():
+        global atto_secs_left
         q_buttons = round_qbuttons[round_num][1]
         # TODO: Handle timeouts, answering questions
         for q_button in q_buttons:
@@ -615,11 +626,22 @@ def make_open_callback(round_num, cat_num, q_num):
         wait_window = Toplevel(admin_window)
         pw_frame = ttk.Frame(wait_window)
         pw_frame.grid(column=0, row=0)
-        ttk.Label(pw_frame, text="OK, fake a contestant").grid(
+        ttk.Label(pw_frame, text="Choose the contestant").grid(
             column=0, row=0
         )
+        two_frame = Frame(pw_frame)
+        two_frame.grid(column=0, row=1)
+        ttk.Label(
+            two_frame, 
+            textvariable=atto_secs_left_label
+        ).grid(
+            column=0, row=0
+        )
+        ttk.Label(two_frame, text=' seconds left to attempt').grid(
+            column=1, row=0
+        )
         bee_frame = ttk.Frame(pw_frame)
-        bee_frame.grid(column=0, row=1)
+        bee_frame.grid(column=0, row=2)
         
         def make_inject_contestant_buzz(contestant, button):
             def inner_inject_contestant_buzz():
@@ -988,7 +1010,6 @@ def fuck_you_tk(ev, updatelock=ThreadingEvent(), last_max=[0]):
 
 fuck_you_tk('nope')
 admin_window.bind('<Configure>', fuck_you_tk)
-
 
 program_running.set()
 dat_buzzer_thread = DebugThread()

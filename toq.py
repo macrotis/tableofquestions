@@ -391,6 +391,7 @@ def round_teardown(round_num):
     round_button.config(text='Finished')
     round_button.state(['disabled'])
     current_round += 1
+    count_all_the_points(None)
     if current_round < len(game):
         new_round_frame = admin_notebook.winfo_children()[current_round]
         cat_frame, game_frame = new_round_frame.winfo_children()[:2]

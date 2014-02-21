@@ -12,6 +12,7 @@ from tkinter import ttk
 from tkinter import font
 
 current_q, current_q_num = None, 0
+atto_secs_left, anto_secs_left = 0, 0
 
 class Contestant(object):
     @classmethod
@@ -219,6 +220,21 @@ def scribble_question(low_bound):
         font=logo_font
     )
 
+def scribble_answer(low_bound):
+    global current_q
+    w, h, sw, sh = canvas_wh()
+    lb = low_bound - 5
+    ub = sh + 5
+    xm = int((w / 2) + sw)
+    ym = int((lb - ub) / 2 + ub)
+    display_canvas.create_text(
+        xm,
+        ym,
+        text=current_q['answer'],
+        fill='white',
+        font=logo_font
+    )
+
 def paint_question_presentation(*args):
     global current_q_i
     clean_up_canvas()
@@ -240,6 +256,94 @@ def paint_question_presentation(*args):
     )
     scribble_contestant_window(h)
     display_canvas_config_callbacks.add(paint_question_presentation)
+
+def paint_answer_presentation(*args):
+    global current_q_i
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
+    h = 0.75 * h
+    lh = 0.8 * h
+    scribble_answer(lh)
+    xm = int((w / 2) + sw)
+    ym = int((h - lh) / 2 + lh + sh)
+    display_canvas.create_text(
+        sw + 5,
+        ym,
+        text="%d points." % (
+            (current_q_i + 1) * game[current_round]['point_increment']
+        ),
+        anchor=W,
+        fill='white',
+        font=cat_font
+    )
+    scribble_contestant_window(h)
+    display_canvas_config_callbacks.add(paint_answer_presentation)
+
+def paint_question_open(*args):
+    global current_q_i
+    global atto_secs_left
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
+    h = 0.75 * h
+    lh = 0.8 * h
+    scribble_question(lh)
+    xm = int((w / 2) + sw)
+    ym = int((h - lh) / 2 + lh + sh)
+    display_canvas.create_text(
+        sw + 5,
+        ym,
+        text="%d points." % (
+            (current_q_i + 1) * game[current_round]['point_increment']
+        ),
+        anchor=W,
+        fill='white',
+        font=cat_font
+    )
+    display_canvas.create_text(
+        w + sw - 5,
+        ym,
+        text=("{:%d.3f} seconds to attempt" % (
+            log(game[current_round]['attempt_timeout'], 10)
+        )).format(max(0, atto_secs_left)),
+        anchor=E,
+        fill='white',
+        font=cat_font
+    )
+    scribble_contestant_window(h)
+    display_canvas_config_callbacks.add(paint_question_open)
+
+def paint_question_attempt(*args):
+    global current_q_i
+    global anto_secs_left
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
+    h = 0.75 * h
+    lh = 0.8 * h
+    scribble_question(lh)
+    xm = int((w / 2) + sw)
+    ym = int((h - lh) / 2 + lh + sh)
+    display_canvas.create_text(
+        sw + 5,
+        ym,
+        text="%d points." % (
+            (current_q_i + 1) * game[current_round]['point_increment']
+        ),
+        anchor=W,
+        fill='white',
+        font=cat_font
+    )
+    display_canvas.create_text(
+        w + sw - 5,
+        ym,
+        text=("{:%d.3f} seconds to answer" % (
+            log(game[current_round]['answer_timeout'], 10)
+        )).format(max(0, anto_secs_left)),
+        anchor=E,
+        fill='white',
+        font=cat_font
+    )
+    scribble_contestant_window(h)
+    display_canvas_config_callbacks.add(paint_question_attempt)
 
 def paint_game_board(*args):
     clean_up_canvas()
@@ -361,6 +465,7 @@ def make_question_callback(round_num, cat_num, q_num):
     return question_cb
 
 def see_if_correct(qref, contestant, timeout):
+    global anto_secs_left
     ret = {'ret': False, 'verified': False}
     check_window = Toplevel(admin_window)
     ttk.Label(check_window, text="Did the user get it?").pack()
@@ -381,12 +486,15 @@ def see_if_correct(qref, contestant, timeout):
                command=click_no).grid(column=1, row=0)
     start_time = datetime.now()
     time_spent = 0
+    anto_secs_left = timeout - time_spent
+    paint_question_attempt()
     while time_spent < timeout:
         # TODO: Update the game display too!
         if ret['verified']:
             break
         time_spent = (datetime.now() - start_time).total_seconds()
         time_spent_width = int(ceil(log(time_spent, 10)))
+        anto_secs_left = timeout - time_spent
         if (timeout - time_spent) > 0:
             timeout_label.config(
                 text=("{:%s.3f} seconds left" 
@@ -397,6 +505,7 @@ def see_if_correct(qref, contestant, timeout):
                 text="Time expired"
             )
         admin_window.update()
+        paint_question_attempt()
         time.sleep(0.001)
     timeout_label.config(text="Time expired")
     while True:
@@ -412,11 +521,14 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
                          debug_contestant_picker=None):
     global accepting_answers
     global buzzer_queue
+    global atto_secs_left
     this_round = game[round_num]
     this_q = this_round['categories'][cat_num]['questions'][q_num]
     q_buttons = round_qbuttons[round_num][1]
     im = datetime.now()
     d = (im - start_at).total_seconds()
+    atto_secs_left = timeout - d
+    paint_question_open()
     if d > timeout:
         for q_button in q_buttons:
             if q_button[0] == this_q:
@@ -425,6 +537,7 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
         win.destroy()
         accepting_answers.clear()
         queue_empty(buzzer_queue)
+        paint_answer_presentation()
         return
     else:
         do_it_again = lambda: handle_open_question(
@@ -452,6 +565,7 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
                     accepting_answers.clear()
                     queue_empty(buzzer_queue)
                     win.destroy()
+                    paint_answer_presentation()
                 else:
                     admin_window.after(10, lambda: handle_open_question(
                         round_num, cat_num, q_num, datetime.now(), timeout, win,

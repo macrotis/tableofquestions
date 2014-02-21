@@ -239,9 +239,9 @@ def paint_question_presentation(*args):
     global current_q_i
     clean_up_canvas()
     w, h, sw, sh = canvas_wh()
-    h = 0.75 * h
-    lh = 0.8 * h
-    scribble_question(lh)
+    h = int(0.75 * h)
+    lh = int(0.8 * h)
+    scribble_question(lh + sh)
     xm = int((w / 2) + sw)
     ym = int((h - lh) / 2 + lh + sh)
     display_canvas.create_text(
@@ -254,16 +254,16 @@ def paint_question_presentation(*args):
         fill='white',
         font=cat_font
     )
-    scribble_contestant_window(h)
+    scribble_contestant_window(h + sh)
     display_canvas_config_callbacks.add(paint_question_presentation)
 
 def paint_answer_presentation(*args):
     global current_q_i
     clean_up_canvas()
     w, h, sw, sh = canvas_wh()
-    h = 0.75 * h
-    lh = 0.8 * h
-    scribble_answer(lh)
+    h = int(0.75 * h)
+    lh = int(0.8 * h)
+    scribble_answer(lh + sh)
     xm = int((w / 2) + sw)
     ym = int((h - lh) / 2 + lh + sh)
     display_canvas.create_text(
@@ -276,7 +276,7 @@ def paint_answer_presentation(*args):
         fill='white',
         font=cat_font
     )
-    scribble_contestant_window(h)
+    scribble_contestant_window(h + sh)
     display_canvas_config_callbacks.add(paint_answer_presentation)
 
 def paint_question_open(*args):
@@ -284,8 +284,8 @@ def paint_question_open(*args):
     global atto_secs_left
     clean_up_canvas()
     w, h, sw, sh = canvas_wh()
-    h = 0.75 * h
-    lh = 0.8 * h
+    h = int(0.75 * h)
+    lh = int(0.8 * h)
     scribble_question(lh)
     xm = int((w / 2) + sw)
     ym = int((h - lh) / 2 + lh + sh)
@@ -309,7 +309,7 @@ def paint_question_open(*args):
         fill='white',
         font=cat_font
     )
-    scribble_contestant_window(h)
+    scribble_contestant_window(h + sh)
     display_canvas_config_callbacks.add(paint_question_open)
 
 def paint_question_attempt(*args):
@@ -317,8 +317,8 @@ def paint_question_attempt(*args):
     global anto_secs_left
     clean_up_canvas()
     w, h, sw, sh = canvas_wh()
-    h = 0.75 * h
-    lh = 0.8 * h
+    h = int(0.75 * h)
+    lh = int(0.8 * h)
     scribble_question(lh)
     xm = int((w / 2) + sw)
     ym = int((h - lh) / 2 + lh + sh)
@@ -342,7 +342,7 @@ def paint_question_attempt(*args):
         fill='white',
         font=cat_font
     )
-    scribble_contestant_window(h)
+    scribble_contestant_window(h + sh)
     display_canvas_config_callbacks.add(paint_question_attempt)
 
 def paint_game_board(*args):

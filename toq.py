@@ -13,6 +13,7 @@ from tkinter import font
 
 current_q, current_q_num = None, 0
 atto_secs_left, anto_secs_left = 0, 0
+last_round_num = 0
 
 class Contestant(object):
     @classmethod
@@ -258,26 +259,28 @@ def paint_question_presentation(*args):
     display_canvas_config_callbacks.add(paint_question_presentation)
 
 def paint_answer_presentation(*args):
+    global current_round
     global current_q_i
-    clean_up_canvas()
-    w, h, sw, sh = canvas_wh()
-    h = int(0.75 * h)
-    lh = int(0.8 * h)
-    scribble_answer(lh + sh)
-    xm = int((w / 2) + sw)
-    ym = int((h - lh) / 2 + lh + sh)
-    display_canvas.create_text(
-        sw + 5,
-        ym,
-        text="%d points." % (
-            (current_q_i + 1) * game[current_round]['point_increment']
-        ),
-        anchor=W,
-        fill='white',
-        font=cat_font
-    )
-    scribble_contestant_window(h + sh)
-    display_canvas_config_callbacks.add(paint_answer_presentation)
+    if current_round < len(game):
+        clean_up_canvas()
+        w, h, sw, sh = canvas_wh()
+        h = int(0.75 * h)
+        lh = int(0.8 * h)
+        scribble_answer(lh + sh)
+        xm = int((w / 2) + sw)
+        ym = int((h - lh) / 2 + lh + sh)
+        display_canvas.create_text(
+            sw + 5,
+            ym,
+            text="%d points." % (
+                (current_q_i + 1) * game[current_round]['point_increment']
+            ),
+            anchor=W,
+            fill='white',
+            font=cat_font
+        )
+        scribble_contestant_window(h + sh)
+        display_canvas_config_callbacks.add(paint_answer_presentation)
 
 def paint_question_open(*args):
     global current_q_i
@@ -387,6 +390,12 @@ def paint_game_board(*args):
     scribble_contestant_window(h + sh)
     display_canvas_config_callbacks.add(paint_game_board)
 
+def paint_round_over(*args):
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
+    scribble_contestant_window(int(0.475 * h - sh))
+    display_canvas_config_callbacks.add(paint_round_over)
+
 def fire_display_canvas_evhs(ev):
     for evh in display_canvas_config_callbacks:
         evh(ev)
@@ -396,7 +405,7 @@ paint_opening_screen()
 
 admin_notebook = ttk.Notebook(admin_window)
 round_count = 0
-current_round = 0
+current_round = -1
 contestants = [Contestant(), Contestant(), Contestant()]
 
 def get_score_for_contestant(contestant):
@@ -431,6 +440,9 @@ def count_all_the_points(ev):
 
 def make_start_round_callback(round_num):
     def round_cb():
+        global current_round
+        current_round = round_num
+        count_all_the_points(None)
         round_frame = admin_notebook.winfo_children()[round_num]
         cats_frame, game_frame = round_frame.winfo_children()[:2]
         game_button = game_frame.winfo_children()[1]
@@ -468,7 +480,7 @@ def see_if_correct(qref, contestant, timeout):
     global anto_secs_left
     ret = {'ret': False, 'verified': False}
     check_window = Toplevel(admin_window)
-    ttk.Label(check_window, text="Did the user get it?").pack()
+    ttk.Label(check_window, text="Did they get it?").pack()
     timeout_label = ttk.Label(check_window, text="%s seconds left" % timeout)
     timeout_label.pack(side=BOTTOM)
     bframe = ttk.Frame(check_window)
@@ -565,6 +577,7 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
                     accepting_answers.clear()
                     queue_empty(buzzer_queue)
                     win.destroy()
+                    print("lolwat")
                     paint_answer_presentation()
                 else:
                     admin_window.after(10, lambda: handle_open_question(
@@ -656,7 +669,8 @@ def make_clear_callback(round_num, cat_num, q_num):
         count_all_the_points(None)
         if rnd['question_count'] == rnd['answered_questions']:
             round_teardown(round_num)
-        paint_game_board()
+        else:
+            paint_game_board()
     return clear_cb
 
 def make_all_in_callback(round_num, cat_num, q_num):
@@ -679,28 +693,26 @@ def make_all_in_callback(round_num, cat_num, q_num):
 
 def round_teardown(round_num):
     global current_round
+    global last_round
     print("All done!")
     cur_round_frame = admin_notebook.winfo_children()[current_round]
     cat_frame, game_frame = cur_round_frame.winfo_children()[:2]
     round_button = game_frame.winfo_children()[1]
     round_button.config(text='Finished')
     round_button.state(['disabled'])
-    current_round += 1
     count_all_the_points(None)
-    if current_round < len(game):
-        new_round_frame = admin_notebook.winfo_children()[current_round]
+    paint_round_over()
+    if current_round < len(game) - 1:
+        new_round_frame = admin_notebook.winfo_children()[current_round + 1]
         cat_frame, game_frame = new_round_frame.winfo_children()[:2]
         round_button = game_frame.winfo_children()[1]
-        if 'last_chance' in game[current_round] \
-           and game[current_round]['last_chance'] is True:
+        if 'last_chance' in game[current_round + 1] \
+           and game[current_round + 1]['last_chance'] is True:
             round_button.config(text='Start Last Chance')
         else:
             round_button.config(text='Start Round')
         round_button.state(['!disabled'])
-        admin_notebook.select(admin_notebook.tabs()[current_round])
-    else:
-        # Do some funky display stuff
-        pass
+        admin_notebook.select(admin_notebook.tabs()[current_round + 1])
 
 def make_round_teardown_callback(round_num):
     def rt_cb():

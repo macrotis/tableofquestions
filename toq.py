@@ -144,20 +144,55 @@ display_canvas = Canvas(display_frame, bg='blue')
 display_canvas.pack(fill=BOTH, expand=True)
 # Expect the display frame to be broken, unbroken, and all sorts of other
 # things in-between.
-def paint_opening_screen(*args):
+def clean_up_canvas():
     display_canvas.delete(ALL)
     for cb in display_canvas_config_callbacks:
         display_canvas.unbind(cb)
     display_canvas_config_callbacks.clear()
-    w, h = display_canvas.winfo_width(), display_canvas.winfo_height()
+
+def canvas_wh():
+    orig_w = display_canvas.winfo_width()
+    orig_h = display_canvas.winfo_height()
+    new_w, new_h = map(lambda d: int(d / 1.1), (orig_w, orig_h))
+    shift_w = int((orig_w - new_w) / 2)
+    shift_h = int((orig_h - new_h) / 2)
+    return (new_w, new_h, shift_w, shift_h)
+
+def paint_opening_screen(*args):
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
     display_canvas.create_text(
-        w/2,
-        h/2,
+        int((w / 2) + sw),
+        int((h / 2) + sh),
         text="Table O' Questions!",
         fill='white',
         font=font.Font(family='Comic Sans MS', size='32', weight='bold')
     )
     display_canvas_config_callbacks.add(paint_opening_screen)
+
+def paint_game_board(*args):
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
+    h = int(0.75 * h)
+    cats = game[current_round]['categories']
+    cat_count = len(cats)
+    box_width = int(((w - 5) - (cat_count * 5)) / cat_count)
+    max_q_count = max(map(lambda c: len(c['questions']), cats))
+    box_height = int(((h - 5) - ((max_q_count + 1) * 5)) / (max_q_count + 1))
+    for i in range(0, cat_count):
+        x0 = ((5 * (i+1)) + i * box_width) + sw
+        x1 = ((5 * (i+1)) + (i + 1) * box_width) + sw
+        y0, y1 = (5 + sh), (5 + box_height + sh)
+        display_canvas.create_rectangle(x0, y0, x1, y1, outline='white')
+        xm, ym = map(int, (((x1 - x0) / 2 + x0), ((y1 - y0) / 2) + y0))
+        display_canvas.create_text(
+            xm,
+            ym,
+            text=cats[i]['name'],
+            fill='white',
+            font=font.Font(family='Comic Sans MS', size='20', weight='bold')
+        )
+    display_canvas_config_callbacks.add(paint_game_board)
 
 def fire_display_canvas_evhs(ev):
     for evh in display_canvas_config_callbacks:
@@ -212,6 +247,7 @@ def make_start_round_callback(round_num):
             for qf in cat.winfo_children()[1:]:
                 q_button = qf.winfo_children()[2]
                 q_button.state(['!disabled'])
+        paint_game_board()
     return round_cb
 
 def make_question_callback(round_num, cat_num, q_num):

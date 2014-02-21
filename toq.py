@@ -116,6 +116,12 @@ round_qbuttons = []
 admin_window = Tk()
 admin_window.title("ToQ Admin")
 admin_window.resizable(0, 0) # Yeah, I'm a jerk. I also need to get this done.
+display_window = Toplevel(admin_window)
+display_window.title("Table O' Questions!")
+display_frame = Frame(display_window, bg='blue')
+display_frame.place(anchor=CENTER, relx=0.5, rely=0.5, relheight=1, relwidth=1)
+# Expect the display frame to be broken, unbroken, and all sorts of other
+# things in-between.
 admin_notebook = ttk.Notebook(admin_window)
 round_count = 0
 current_round = 0

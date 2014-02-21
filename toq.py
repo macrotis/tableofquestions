@@ -7,6 +7,7 @@
 #  in fact it's not how you do anything with tkinter.)
 import time
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -1025,7 +1026,8 @@ def stop_dat_buzzer_thread(ev):
     print("Joined the buzzer thread")
 
 def clean_up_after_tk(*args):
-    admin_window.destroy()
+    if os.uname()[0] == 'Darwin':
+        admin_window.destroy()
     stop_dat_buzzer_thread(None)
 
 admin_window.createcommand('exit', clean_up_after_tk)
@@ -1035,4 +1037,5 @@ admin_window.mainloop()
 # Some people would be hilariously wrong.
 # SOME PEOPLE DON'T HAVE REAL WORK TO DO
 # (some people ought to be ignored)
-# ((some people totally are))
+# unless it's not on OS X
+clean_up_after_tk()

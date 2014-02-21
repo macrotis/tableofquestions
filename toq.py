@@ -9,6 +9,7 @@ from queue import Empty, Queue
 from threading import Event as ThreadingEvent, Thread
 from tkinter import *
 from tkinter import ttk
+from tkinter import font
 
 class Contestant(object):
     @classmethod
@@ -118,10 +119,53 @@ admin_window.title("ToQ Admin")
 admin_window.resizable(0, 0) # Yeah, I'm a jerk. I also need to get this done.
 display_window = Toplevel(admin_window)
 display_window.title("Table O' Questions!")
-display_frame = Frame(display_window, bg='blue')
-display_frame.place(anchor=CENTER, relx=0.5, rely=0.5, relheight=1, relwidth=1)
+
+is_fullscreen = ThreadingEvent()
+def toggle_fullscreen_display_window(ev, last_geometry={}):
+    if not is_fullscreen.is_set():
+        display_window.wm_attributes('-fullscreen', 1)
+        is_fullscreen.set()
+    else:
+        display_window.wm_attributes('-fullscreen', 0)
+        is_fullscreen.clear()
+
+display_window.bind('<Control-f>', toggle_fullscreen_display_window)
+display_window.bind('<Control-F>', toggle_fullscreen_display_window)
+display_frame = Frame(display_window)
+display_frame.place(
+    anchor=CENTER, 
+    relx=0.5, 
+    rely=0.5, 
+    relwidth=1.1, 
+    relheight=1.1
+)
+display_canvas_config_callbacks = set()
+display_canvas = Canvas(display_frame, bg='blue')
+display_canvas.pack(fill=BOTH, expand=True)
 # Expect the display frame to be broken, unbroken, and all sorts of other
 # things in-between.
+def paint_opening_screen(*args):
+    display_canvas.delete(ALL)
+    for cb in display_canvas_config_callbacks:
+        display_canvas.unbind(cb)
+    display_canvas_config_callbacks.clear()
+    w, h = display_canvas.winfo_width(), display_canvas.winfo_height()
+    display_canvas.create_text(
+        w/2,
+        h/2,
+        text="Table O' Questions!",
+        fill='white',
+        font=font.Font(family='Comic Sans MS', size='32', weight='bold')
+    )
+    display_canvas_config_callbacks.add(paint_opening_screen)
+
+def fire_display_canvas_evhs(ev):
+    for evh in display_canvas_config_callbacks:
+        evh(ev)
+
+display_window.bind('<Configure>', fire_display_canvas_evhs)
+paint_opening_screen()
+
 admin_notebook = ttk.Notebook(admin_window)
 round_count = 0
 current_round = 0

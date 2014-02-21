@@ -556,7 +556,6 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
     atto_secs_left_label.set((
         "{:%d.3f}" % int(ceil(log(this_round['attempt_timeout'], 10)))
     ).format(max(0, atto_secs_left.get())))
-    count_all_the_points(None)
     paint_question_open()
     if d > timeout:
         for q_button in q_buttons:
@@ -594,14 +593,14 @@ def handle_open_question(round_num, cat_num, q_num, start_at, timeout, win,
                     accepting_answers.clear()
                     queue_empty(buzzer_queue)
                     win.destroy()
-                    print("lolwat")
+                    count_all_the_points(None)
                     paint_answer_presentation()
                 else:
+                    count_all_the_points(None)
                     admin_window.after(10, lambda: handle_open_question(
                         round_num, cat_num, q_num, datetime.now(), timeout, win,
                         debug_contestant_picker
                     ))
-                count_all_the_points(None)
 
 def make_open_callback(round_num, cat_num, q_num):
     global accepting_answers

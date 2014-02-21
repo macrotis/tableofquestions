@@ -198,11 +198,12 @@ def scribble_contestant_window(h_offset=None):
             fill='white',
             font=cat_font
         )
+        c_score = contestants[i].score.get()
         display_canvas.create_text(
             xl,
             yl,
-            text=contestants[i].score.get(),
-            fill='white',
+            text=c_score,
+            fill='white' if c_score >= 0.0 else 'red',
             font=cat_font
         )
 

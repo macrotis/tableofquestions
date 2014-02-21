@@ -11,6 +11,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import font
 
+current_q, current_q_num = None, 0
 
 class Contestant(object):
     @classmethod
@@ -203,6 +204,43 @@ def scribble_contestant_window(h_offset=None):
             font=cat_font
         )
 
+def scribble_question(low_bound):
+    global current_q
+    w, h, sw, sh = canvas_wh()
+    lb = low_bound - 5
+    ub = sh + 5
+    xm = int((w / 2) + sw)
+    ym = int((lb - ub) / 2 + ub)
+    display_canvas.create_text(
+        xm,
+        ym,
+        text=current_q['content'],
+        fill='white',
+        font=logo_font
+    )
+
+def paint_question_presentation(*args):
+    global current_q_i
+    clean_up_canvas()
+    w, h, sw, sh = canvas_wh()
+    h = 0.75 * h
+    lh = 0.8 * h
+    scribble_question(lh)
+    xm = int((w / 2) + sw)
+    ym = int((h - lh) / 2 + lh + sh)
+    display_canvas.create_text(
+        sw + 5,
+        ym,
+        text="%d points." % (
+            (current_q_i + 1) * game[current_round]['point_increment']
+        ),
+        anchor=W,
+        fill='white',
+        font=cat_font
+    )
+    scribble_contestant_window(h)
+    display_canvas_config_callbacks.add(paint_question_presentation)
+
 def paint_game_board(*args):
     clean_up_canvas()
     w, h, sw, sh = canvas_wh()
@@ -304,6 +342,10 @@ def make_start_round_callback(round_num):
 def make_question_callback(round_num, cat_num, q_num):
     this_q = game[round_num]['categories'][cat_num]['questions'][q_num]
     def question_cb():
+        global current_q
+        global current_q_i
+        current_q = this_q
+        current_q_i = q_num
         q_buttons = round_qbuttons[round_num][1]
         for q_button in q_buttons:
             if q_button[0] != this_q:
@@ -314,6 +356,7 @@ def make_question_callback(round_num, cat_num, q_num):
                 q_button[1].config(command=make_open_callback(
                     round_num, cat_num, q_num
                 ))
+        paint_question_presentation()
         question_running.set()
     return question_cb
 

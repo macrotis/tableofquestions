@@ -11,6 +11,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import font
 
+
 class Contestant(object):
     @classmethod
     def _python_scoping_is_crap(cls, inst):
@@ -120,6 +121,9 @@ admin_window.resizable(0, 0) # Yeah, I'm a jerk. I also need to get this done.
 display_window = Toplevel(admin_window)
 display_window.title("Table O' Questions!")
 
+cat_font = font.Font(family='Comic Sans MS', weight='bold', size=20)
+logo_font = font.Font(family='Comic Sans MS', weight='bold', size=32)
+
 is_fullscreen = ThreadingEvent()
 def toggle_fullscreen_display_window(ev, last_geometry={}):
     if not is_fullscreen.is_set():
@@ -166,7 +170,7 @@ def paint_opening_screen(*args):
         int((h / 2) + sh),
         text="Table O' Questions!",
         fill='white',
-        font=font.Font(family='Comic Sans MS', size='32', weight='bold')
+        font=logo_font
     )
     display_canvas_config_callbacks.add(paint_opening_screen)
 
@@ -190,8 +194,25 @@ def paint_game_board(*args):
             ym,
             text=cats[i]['name'],
             fill='white',
-            font=font.Font(family='Comic Sans MS', size='20', weight='bold')
+            font=cat_font
         )
+        for j in range(0, max_q_count):
+            if j >= len(cats[i]['questions']):
+                break
+            elif 'answered' in cats[i]['questions'][j] and \
+                 cats[i]['questions'][j]['answered'] is True:
+                continue
+            y0 = ((5 * (j+2)) + (j+1) * box_height) + sh
+            y1 = ((5 * (j+2)) + (j+2) * box_height) + sh
+            display_canvas.create_rectangle(x0, y0, x1, y1, outline='white')
+            ym = (y1 - y0) / 2 + y0
+            display_canvas.create_text(
+                xm,
+                ym,
+                text=((j+1) * game[current_round]['point_increment']),
+                fill='white',
+                font=cat_font
+            )
     display_canvas_config_callbacks.add(paint_game_board)
 
 def fire_display_canvas_evhs(ev):
@@ -448,6 +469,7 @@ def make_clear_callback(round_num, cat_num, q_num):
         count_all_the_points(None)
         if rnd['question_count'] == rnd['answered_questions']:
             round_teardown(round_num)
+        paint_game_board()
     return clear_cb
 
 def make_all_in_callback(round_num, cat_num, q_num):

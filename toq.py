@@ -174,6 +174,35 @@ def paint_opening_screen(*args):
     )
     display_canvas_config_callbacks.add(paint_opening_screen)
 
+def scribble_contestant_window(h_offset=None):
+    w, h, sw, sh = canvas_wh()
+    if h_offset is None:
+        h_offset = int((h / 2) + sh)
+    contestant_count = len(contestants)
+    box_height = int(0.25 * h - 10)
+    box_width = int(((w - 5) - (contestant_count * 5)) / contestant_count)
+    y0, y1 = (5 + h_offset), (5 + box_height + h_offset)
+    for i in range(0, contestant_count):
+        x0 = ((5 * (i+1)) + i * box_width) + sw
+        x1 = ((5 * (i+1)) + (i + 1) * box_width) + sw
+        display_canvas.create_rectangle(x0, y0, x1, y1, outline='white')
+        xu, yu = map(int, (((x1 - x0) / 4 + x0), ((y1 - y0) / 4 + y0)))
+        xl, yl = map(int, (((x1 - x0) * 3 / 4 + x0), ((y1 - y0) * 3 / 4 + y0)))
+        display_canvas.create_text(
+            xu,
+            yu,
+            text=contestants[i].name.get(),
+            fill='white',
+            font=cat_font
+        )
+        display_canvas.create_text(
+            xl,
+            yl,
+            text=contestants[i].score.get(),
+            fill='white',
+            font=cat_font
+        )
+
 def paint_game_board(*args):
     clean_up_canvas()
     w, h, sw, sh = canvas_wh()
@@ -213,6 +242,7 @@ def paint_game_board(*args):
                 fill='white',
                 font=cat_font
             )
+    scribble_contestant_window(h + sh)
     display_canvas_config_callbacks.add(paint_game_board)
 
 def fire_display_canvas_evhs(ev):
@@ -729,6 +759,11 @@ for rnd in game:
 admin_notebook.pack(fill=BOTH, expand=True)
 admin_notebook.enable_traversal()
 contestant_pane = Frame(admin_window)
+
+def repaint_display_window_on_change(*args):
+    fire_display_canvas_evhs(None)
+    display_window.update()
+
 for i in range(0, len(contestants)):
     contestant = contestants[i]
     c_entry = ttk.Entry(contestant_pane, textvariable=contestant.name)
@@ -736,6 +771,8 @@ for i in range(0, len(contestants)):
     c_entry.bind('<FocusOut>', Contestant._python_scoping_is_crap(contestant))
     c_score = ttk.Label(contestant_pane, textvariable=contestant.score)
     c_score.grid(column=i, row=1)
+    contestant.name.trace("w", repaint_display_window_on_change)
+    contestant.score.trace("w", repaint_display_window_on_change)
 contestant_pane.pack(side=BOTTOM, expand=True)
 
 # Hack to get all the questions aligned in the admin interface

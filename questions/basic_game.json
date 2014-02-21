@@ -1,0 +1,107 @@
+{"game": [{
+    "point_increment": 50,
+    "is_practice": true,
+    "attempt_timeout": 7.5,
+    "answer_timeout": 7.5,
+    "all_in_timeout": 7.5,
+    "premature_answer_lockout": 0.5,
+    "categories": [{
+        "name": "Category 1",
+        "questions": [{
+            "content": "Question 1,1",
+            "answer": "Answer 1,1"
+        }, {
+            "content": "Question 1,2",
+            "answer": "Answer 1,2"
+        }]
+    }, {
+        "name": "Category 2",
+        "questions": [{
+            "content": "Question 2,1",
+            "answer": "Answer 2,1"
+        }, {
+            "content": "Question 2,2",
+            "answer": "Answer 2,2"
+        }]
+    }]
+}, {
+    "point_increment": 100,
+    "attempt_timeout": 5.0,
+    "answer_timeout": 5.0,
+    "all_in_timeout": 5.0,
+    "premature_answer_lockout": 0.75,
+    "categories": [{
+        "name": "Search Engines",
+        "questions": [{
+            "content": "This most-used search engine has the motto \"Do not be evil\"",
+            "answer": "What is Google?"
+        }, {
+            "content": "The name of this second place engine stands for \"Yet Another Hierarchical Officious Oracle!\"",
+            "answer": "What is Yahoo!?"
+        }, {
+            "content": "Previously \"Windows Live Search\", this cherry of a search engine is know by four letters",
+            "answer": "What is Bing?"
+        }, {
+            "content": "This engine has the personal assistant mascot \"Jeeves\"",
+            "answer": "What is Ask (or Ask Jeeves)?"
+        }, {
+            "content": "This engine with a waterfowl twice in its name emphasizes user security and privacy",
+            "answer": "What is DuckDuckGo?"
+        }]
+    }, {
+        "name": "Acronyms",
+        "questions": [{
+            "content": "GB",
+            "answer": "What is Gigabytes?"
+        }, {
+            "content": "CPU",
+            "answer": "What is Central Processing Unit?"
+        }, {
+            "content": "CD",
+            "answer": "What is Compact Disk?"
+        }, {
+            "content": "RAM",
+            "answer": "What is Random Access Memory?"
+        }, {
+            "content": "UPS",
+            "answer": "What is Uninterruptible Power Supply?"
+        }]
+    }, {
+        "name": "Security",
+        "questions": [{
+            "content": "This is the computer security term for a malicious program that spreads by inserting copies of itself into other executable code or documents",
+            "answer": "What is a Virus?"
+        }, {
+            "content": "A network device that blocks bad traffic from coming in is called this.",
+            "answer": "What is a Firewall?"
+        }, {
+            "content": "The art or science of hiding information is called this.",
+            "answer": "What is Cryptography?"
+        }, {
+            "content": "When someone tries to trick you into giving them your password or credit card number by sending you to a web site that looks like a real site, it is called this.",
+            "answer": "What is Phishing?"
+        }, {
+            "content": "According to a  New York Times article, this string of six digits is the most commonly used password by people.",
+            "answer": "What is 123456?"
+        }]
+    }, {
+        "name": "Hardware",
+        "questions": [{
+            "content": "This is a substance that resists the flow of current.",
+            "answer": "What is a Resistor?"
+        }, {
+            "content": "This device converts stored chemical energy into electrical energy.",
+            "answer": "What is a battery?"
+        }, {
+            "content": "This device stores energy in an electric field between two plates.",
+            "answer": "What is a Capacitor?"
+        }, {
+            "content": "A substance that lets electric charge pass through it is known as this.",
+            "answer": "What is a Conductor?"
+        }, {
+            "content": "Developed by Bardeen, Brattain, and Shockley, this is a semiconductor device used to amplify or switch electronic signals.",
+            "answer": "What is a Transistor?"
+        }]
+    }]
+}]}
+

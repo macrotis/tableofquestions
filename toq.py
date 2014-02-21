@@ -228,7 +228,8 @@ def scribble_question(low_bound):
         ym,
         text=current_q['content'],
         fill='white',
-        font=logo_font
+        font=logo_font,
+        width=int(w / 1.5 - 10) 
     )
 
 def scribble_answer(low_bound):
@@ -243,7 +244,8 @@ def scribble_answer(low_bound):
         ym,
         text=current_q['answer'],
         fill='white',
-        font=logo_font
+        font=logo_font,
+        width=int(w / 1.5 - 10)
     )
 
 def paint_question_presentation(*args):
@@ -299,7 +301,7 @@ def paint_question_open(*args):
     w, h, sw, sh = canvas_wh()
     h = int(0.75 * h)
     lh = int(0.8 * h)
-    scribble_question(lh)
+    scribble_question(lh + sh)
     xm = int((w / 2) + sw)
     ym = int((h - lh) / 2 + lh + sh)
     display_canvas.create_text(
@@ -332,7 +334,7 @@ def paint_question_attempt(*args):
     w, h, sw, sh = canvas_wh()
     h = int(0.75 * h)
     lh = int(0.8 * h)
-    scribble_question(lh)
+    scribble_question(lh + sh)
     xm = int((w / 2) + sw)
     ym = int((h - lh) / 2 + lh + sh)
     display_canvas.create_text(
@@ -830,13 +832,21 @@ for rnd in game:
                 )
                 q_frame.grid(column=0, row=(j + 1), sticky=N)
                 ttk.Label(q_frame,
-                          text='Q: ' + q['content']).grid(column=0,
-                                                          row=0,
-                                                          sticky=W)
+                          text='Q: ' + q['content'],
+                          wraplength=240
+                ).grid(
+                    column=0,
+                    row=0,
+                    sticky=W
+                )
                 ttk.Label(q_frame,
-                          text='A: ' + q['answer']).grid(column=0,
-                                                         row=1,
-                                                         sticky=W)
+                          text='A: ' + q['answer'],
+                          wraplength=240
+                ).grid(
+                    column=0,
+                    row=1,
+                    sticky=W
+                )
                 if 'all_in' in q and q['all_in'] is True:
                     q_button = ttk.Button(
                         q_frame,
@@ -976,6 +986,7 @@ max_cf_height = max(map(
     lambda rnd: rnd.winfo_children()[0].winfo_reqheight(),
     admin_notebook.winfo_children()
 ))
+max_qf_height = None
 for rnd_frame in admin_notebook.winfo_children():
     cats_frame, game_frame = rnd_frame.winfo_children()[:2]
     cats_frame.grid_configure(
@@ -984,12 +995,18 @@ for rnd_frame in admin_notebook.winfo_children():
         padx=5
     )
     if not isinstance(cats_frame.winfo_children()[0], ttk.Labelframe):
+        max_qf_heights = []
         for cat in cats_frame.winfo_children():
             q_frames = cat.winfo_children()[1:]
-            max_qf_height = max(map(lambda qf: qf.winfo_reqheight(), q_frames))
+            max_qf_heights.append(
+                max(map(lambda qf: qf.winfo_reqheight(), q_frames))
+            )
+        max_qf_height = max(max_qf_heights)
+        for cat in cats_frame.winfo_children():
+            q_frames = cat.winfo_children()[1:]
             for qf in q_frames:
                 qf.grid_configure(
-                    pady=(max_qf_height - qf.winfo_reqheight()),
+                    ipady=int((max_qf_height - qf.winfo_reqheight()) / 2),
                     padx=5
                 )
 
@@ -1025,9 +1042,10 @@ def stop_dat_buzzer_thread(ev):
     dat_buzzer_thread.join()
     print("Joined the buzzer thread")
 
-def clean_up_after_tk(*args):
-    if os.uname()[0] == 'Darwin':
+def clean_up_after_tk(*args, runbefore={}):
+    if os.uname()[0] == 'Darwin' and 'this' not in runbefore:
         admin_window.destroy()
+        runbefore['this'] = True
     stop_dat_buzzer_thread(None)
 
 admin_window.createcommand('exit', clean_up_after_tk)

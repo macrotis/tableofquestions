@@ -3,6 +3,8 @@
 # KING OF ALL YOU SEE HERE
 # LOOK ON MY WORKS, YE MIGHTY
 # AND DESPAIR!
+# (n. b. this is probably not how you make a Jeopardy board,
+#  in fact it's not how you do anything with tkinter.)
 import time
 import json
 import re
@@ -990,7 +992,7 @@ for rnd_frame in admin_notebook.winfo_children():
                     padx=5
                 )
 
-def fuck_you_tk(ev, updatelock=ThreadingEvent(), last_max=[0]):
+def force_resize_update(ev, updatelock=ThreadingEvent(), last_max=[0]):
     if not updatelock.is_set():
         updatelock.set()
         admin_window.update_idletasks()
@@ -1008,8 +1010,8 @@ def fuck_you_tk(ev, updatelock=ThreadingEvent(), last_max=[0]):
             last_max.append(max_tab_width)
         updatelock.clear()
 
-fuck_you_tk('nope')
-admin_window.bind('<Configure>', fuck_you_tk)
+force_resize_update('nope')
+admin_window.bind('<Configure>', force_resize_update)
 
 program_running.set()
 dat_buzzer_thread = DebugThread()
@@ -1022,11 +1024,11 @@ def stop_dat_buzzer_thread(ev):
     dat_buzzer_thread.join()
     print("Joined the buzzer thread")
 
-def god_damn_it_osx_i_need_to_clean_up_here(*args):
+def clean_up_after_tk(*args):
     admin_window.destroy()
     stop_dat_buzzer_thread(None)
 
-admin_window.createcommand('exit', god_damn_it_osx_i_need_to_clean_up_here)
+admin_window.createcommand('exit', clean_up_after_tk)
 dat_buzzer_thread.start()
 admin_window.mainloop()
 # Some people would like to believe there's an existence after the mainloop
